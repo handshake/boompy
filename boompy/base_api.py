@@ -5,13 +5,17 @@ from requests.status_codes import codes as status_codes
 
 import boompy
 
-from boompy.errors import APIRequestError, BoomiError
+from boompy.errors import APIRequestError, BoomiError, UnauthorizedError
 
 BASE_URL = "https://api.boomi.com/api/rest/v1"
 PARTNER_BASE_URL = "https://api.boomi.com/partner/api/rest/v1"
 
 class API(object):
 
+    account_id = None
+    username = None
+    password = None
+    session = None
     partner_account = None
 
     def _set_auth(self, account_id, username, password):
@@ -49,6 +53,9 @@ class API(object):
 
         if self.password is None:
             raise UnauthorizedError("Boomi username not provied")
+
+        if self.session is None:
+            raise UnauthorizedError("Boomi session does not exist")
 
         self.session.auth = (self.username, self.password)
         self.session.headers.update({
