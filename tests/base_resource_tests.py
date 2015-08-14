@@ -4,7 +4,6 @@ from nose.tools import raises
 import boompy
 
 from boompy.resource import Resource
-from boompy.base_api import API
 from boompy.errors import APIMethodNotAllowedError
 
 def test_create_resource():
@@ -27,10 +26,9 @@ def test_inherit_resource():
     assert newthing.attr1 == "hello"
 
 @raises(APIMethodNotAllowedError)
-@mock.patch.object(API, "https_request")
+@mock.patch.object(boompy.Boompy, "https_request")
 def test_https_request(request_mock):
     boomi = boompy.Boompy(1,2,3)
-    boomi.api.account_id = "123"
 
     class MockResponse(object):
         def __init__(self, content=None):
@@ -43,7 +41,7 @@ def test_https_request(request_mock):
         _attributes = ("id",)
         _name = "TestType"
         _uri = None
-        _api = boomi.api
+        _api = boomi
         supported = {"get": True, "query": False}
 
     newthing = TestType(id="hello")
