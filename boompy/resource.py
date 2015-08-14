@@ -3,7 +3,6 @@ import functools
 import json
 import re
 
-import boompy
 from boompy.errors import APIMethodNotAllowedError
 
 DEFAULT_SUPPORTED = {
@@ -29,25 +28,6 @@ QUERY_OPERATOR_LOOKUP = {
     "not_null": "IS_NOT_NULL",
     "between": "BETWEEN"
 }
-
-def perm_check(fn):
-    @functools.wraps(fn)
-    def inner(resource, url, method, *args, **kwargs):
-        actual_method = method
-
-        # Make sure we're checking capabilities againts real permissions, despite Boomi's silly rest
-        # api using POST for everything.
-        if "update" in url:
-            actual_method = "put"
-        elif "query" in url:
-            actual_method = "query"
-
-        if resource.supported.get(actual_method):
-            return fn(resource, url, method, *args, **kwargs)
-        raise APIMethodNotAllowedError(method)
-
-    return inner
-
 
 class Resource(object):
     """ A base boomi resource. """
@@ -90,12 +70,23 @@ class Resource(object):
 
 
     @classmethod
-    @perm_check
     def __https_request(cls, url, method="get", data=None):
+        actual_method = method
+
+        # Make sure we're checking capabilities againts real permissions, despite Boomi's silly rest
+        # api using POST for everything.
+        if "update" in url:
+            actual_method = "put"
+        elif "query" in url:
+            actual_method = "query"
+
+        if not cls.supported.get(actual_method):
+            raise APIMethodNotAllowedError(method)
+
         if data is None:
             data = {}
 
-        return boompy.api.https_request(url, method, data)
+        return cls._api.https_request(url, method, data)
 
 
     def __update_attrs_from_response(self, res):
@@ -181,7 +172,7 @@ class Resource(object):
 
     @classmethod
     def __base_url(cls):
-        base_url = boompy.api.base_url()
+        base_url = cls._api.base_url()
         return "%s/%s" % (base_url, cls._uri)
 
 
@@ -189,7 +180,7 @@ class Resource(object):
         if getattr(self, self._id_attr) is None and boomi_id is None:
             return self.__base_url()
 
-        base_url = boompy.api.base_url()
+        base_url = self._api.base_url()
         boomi_id = getattr(self, self._id_attr) if boomi_id is None else boomi_id
         return "%s/%s/%s" % (base_url, self._uri, boomi_id)
 

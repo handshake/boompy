@@ -18,11 +18,21 @@ class API(object):
     session = None
     partner_account = None
 
-    def _set_auth(self, account_id, username, password):
+    def __init__(self, account_id, username, password):
         self.account_id = account_id
         self.username = username
         self.password = password
         self.session = requests.session()
+
+        if self.username is None:
+            raise UnauthorizedError("Boomi username not provied")
+
+        if self.password is None:
+            raise UnauthorizedError("Boomi username not provied")
+
+        if self.account_id is None:
+            raise UnauthorizedError("Boomi account id not provied")
+
 
     def https_request(self, url, method, data):
         if self.partner_account:
@@ -42,21 +52,9 @@ class API(object):
 
 
     def base_url(self, partner=False):
-        if self.account_id is None:
-            raise UnauthorizedError("Boomi account id not provied")
-
         return "%s/%s" % (PARTNER_BASE_URL if (partner or self.partner_account)  else BASE_URL, self.account_id)
 
     def session_with_headers(self):
-        if self.username is None:
-            raise UnauthorizedError("Boomi username not provied")
-
-        if self.password is None:
-            raise UnauthorizedError("Boomi username not provied")
-
-        if self.session is None:
-            raise UnauthorizedError("Boomi session does not exist")
-
         self.session.auth = (self.username, self.password)
         self.session.headers.update({
             "Content-Type": "application/json",

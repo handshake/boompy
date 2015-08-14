@@ -10,7 +10,6 @@ from boompy.errors import APIMethodNotAllowedError
 def test_create_resource():
     TestType = Resource.create_resource("TestType", ("thing1", "thing2"), id_attr="thing1",
                                         query=False, put=False)
-
     newthing = TestType(thing1=1, thing2="testing", thing3="not a thing")
     assert newthing.thing1 == 1
     assert newthing.thing2 == "testing"
@@ -28,9 +27,10 @@ def test_inherit_resource():
     assert newthing.attr1 == "hello"
 
 @raises(APIMethodNotAllowedError)
-@mock.patch.object(boompy.api, "https_request")
+@mock.patch.object(boompy.API, "https_request")
 def test_https_request(request_mock):
-    boompy.api.account_id = "123"
+    boomi = boompy.Boompy(1,2,3)
+    boomi.api.account_id = "123"
 
     class MockResponse(object):
         def __init__(self, content=None):
@@ -43,6 +43,7 @@ def test_https_request(request_mock):
         _attributes = ("id",)
         _name = "TestType"
         _uri = None
+        _api = boomi.api
         supported = {"get": True, "query": False}
 
     newthing = TestType(id="hello")
