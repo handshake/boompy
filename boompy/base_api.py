@@ -5,7 +5,7 @@ from requests.status_codes import codes as status_codes
 
 import boompy
 
-from boompy.errors import APIRequestError, BoomiError, UnauthorizedError
+from .errors import APIRequestError, BoomiError, UnauthorizedError
 
 BASE_URL = "https://api.boomi.com/api/rest/v1"
 PARTNER_BASE_URL = "https://api.boomi.com/partner/api/rest/v1"

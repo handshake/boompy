@@ -3,7 +3,7 @@ import functools
 import json
 import re
 
-from boompy.errors import APIMethodNotAllowedError
+from .errors import APIMethodNotAllowedError
 
 DEFAULT_SUPPORTED = {
     "get": True,

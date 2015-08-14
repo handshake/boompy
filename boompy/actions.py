@@ -2,7 +2,7 @@ import functools
 import json
 
 import boompy
-from boompy.errors import UnauthorizedError
+from .errors import UnauthorizedError
 
 def getAssignableRoles():
     if boompy.api is None:

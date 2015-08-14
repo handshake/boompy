@@ -27,7 +27,7 @@ def test_inherit_resource():
     assert newthing.attr1 == "hello"
 
 @raises(APIMethodNotAllowedError)
-@mock.patch.object(boompy.API, "https_request")
+@mock.patch.object(API, "https_request")
 def test_https_request(request_mock):
     boomi = boompy.Boompy(1,2,3)
     boomi.api.account_id = "123"
