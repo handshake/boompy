@@ -155,19 +155,20 @@ class Resource(object):
 
 
     def save(self, **kwargs):
-
-        method = "post"
         url = self.url()
 
         if getattr(self, self._id_attr) is not None:
             url = "%s/update" % url
 
-        res = self.__https_request(self.url(), method=method, data=self.serialize())
+        res = self.__https_request(self.url(), method="post", data=self.serialize())
         self.__update_attrs_from_response(res)
 
 
     def delete(self, **kwargs):
-        pass
+        if getattr(self, self._id_attr) is None:
+            raise BoomiError("Cannot call delete() on object which has not been saved yet.")
+
+        self.__https_request(self.url(), method="delete", data=self.serialze())
 
 
     @classmethod
