@@ -7,10 +7,16 @@ from requests.status_codes import codes as status_codes
 from datetime import datetime, timedelta
 from contextlib import contextmanager
 
-from .errors import APIRequestError, UnauthorizedError, InterfaceError, BoomiError
+from .errors import (
+    APIRequestError,
+    UnauthorizedError,
+    InterfaceError,
+    NotFoundError,
+    RateLimitError,
+    BoomiError
+)
+
 from .resource import Resource
-from .base_api import API
-from . import actions
 
 BASE_URL = "https://api.boomi.com/api/rest/v1"
 PARTNER_BASE_URL = "https://api.boomi.com/partner/api/rest/v1"
@@ -38,7 +44,7 @@ class Boompy(object):
         self.password = password
         self.session = requests.session()
         init_resources_from_factory(self)
-        init_resources_from_factory(self)
+        init_resources_from_inheritance(self)
 
     # Override the account_id value to pull info for partner accounts
     @contextmanager
@@ -64,6 +70,10 @@ class Boompy(object):
 
         if res.status_code == status_codes.OK:
             return res
+        elif res.status_code in (status_codes.SERVICE_UNAVAILABLE, status_codes.TOO_MANY):
+            raise RateLimitError(res)
+        elif res.status_code == status_codes.NOT_FOUND:
+            raise NotFoundError(res)
         else:
             raise APIRequestError(res)
 
@@ -135,7 +145,7 @@ def init_resources_from_inheritance(boomi_object):
 
             return super(Account, self).url(boomi_id=boomi_id)
 
-    setattr(self, "Account", Account)
+    setattr(boomi_object, "Account", Account)
 
     class Role(Resource):
         _id_attr = "id"
@@ -159,4 +169,5 @@ def init_resources_from_inheritance(boomi_object):
 
             return super(Role, cls).query()
 
+    setattr(boomi_object, "Role", Role)
 

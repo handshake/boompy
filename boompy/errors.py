@@ -29,6 +29,12 @@ class APIRequestError(BoomiError):
         return self.message
 
 
+class NotFoundError(APIRequestError):
+    pass
+
+class RateLimitError(APIRequestError):
+    pass
+
 class APIMethodNotAllowedError(BoomiError):
     def __init__(self, method):
         super(APIMethodNotAllowedError, self).__init__()
