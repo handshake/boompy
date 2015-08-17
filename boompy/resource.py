@@ -1,9 +1,8 @@
 import copy
-import functools
 import json
 import re
 
-from .errors import APIMethodNotAllowedError
+from .errors import APIMethodNotAllowedError, BoomiError
 
 DEFAULT_SUPPORTED = {
     "get": True,
