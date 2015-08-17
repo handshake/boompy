@@ -158,7 +158,7 @@ def init_resources_from_inheritance(boomi_object):
             "get": False,
             "put": False,
             "post": False,
-            "query": False,
+            "query": True,
             "delete": False
         }
 
