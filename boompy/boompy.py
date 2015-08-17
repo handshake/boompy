@@ -49,13 +49,13 @@ class Boompy(object):
     # Override the account_id value to pull info for partner accounts
     @contextmanager
     def sub_account(self, acct_id):
-        old_boomi_id = self.api.partner_account
-        self.api.partner_account = acct_id
+        old_boomi_id = self.partner_account
+        self.partner_account = acct_id
 
         try:
             yield
         finally:
-            self.api.partner_account = old_boomi_id
+            self.partner_account = old_boomi_id
 
     def https_request(self, url, method, data):
         if self.partner_account:
@@ -106,7 +106,7 @@ def init_resources_from_factory(boomi_object):
             ("AccountGroupAccount", ("id", "accountId", "accountGroupId"), {"put": False}),
             ("AccountUserRole", ("id", "accountId", "userId", "roleId", "notifyUser"), {"put": False}),
             ("Environment", ("id", "name", "classification"), {}),
-            ("Events", ("eventId", "accountId", "atomId", "atomName", "eventLevel", "eventDate",
+            ("Event", ("eventId", "accountId", "atomId", "atomName", "eventLevel", "eventDate",
                         "status", "eventType", "executionId", "title", "startTime",
                         "errorDocumentCount", "inboundDocumentCount", "outboundDocumentCount",
                         "processName", "recordDate", "error", "environment", "classification",
@@ -114,13 +114,15 @@ def init_resources_from_factory(boomi_object):
                 {"put": False, "get": False, "delete": False, "post": False, "id_attr": "eventId"}),
             ("IntegrationPack", ("id", "name", "Description", "installationType"),
                 {"put": False, "post": False, "delete": False}),
+            ("IntegrationPackInstance", ("id", "integrationPackOverrideName", "integrationPackId"),
+                {"put": False, "get": True, "query": True, "post": True, "delete": True}),
             ("IntegrationPackEnvironmentAttachment",
                 ("id", "environmentId", "integrationPackInstanceId"), {"put": False, "get": False})
     )
 
     for name, attrs, kwargs in entities:
         resource = Resource.create_resource(name, attrs, **kwargs)
-        resource.api = boomi_object
+        resource._api = boomi_object
         setattr(boomi_object, name, resource)
 
 def init_resources_from_inheritance(boomi_object):
