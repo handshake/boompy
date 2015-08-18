@@ -3,6 +3,7 @@ import json
 import re
 
 from .errors import APIMethodNotAllowedError, BoomiError
+from .base_api import API
 
 DEFAULT_SUPPORTED = {
     "get": True,
@@ -91,7 +92,7 @@ class Resource(object):
         if data is None:
             data = {}
 
-        return cls._api.https_request(url, method, data)
+        return API().https_request(url, method, data)
 
 
     def __update_attrs_from_response(self, res):
@@ -178,7 +179,7 @@ class Resource(object):
 
     @classmethod
     def __base_url(cls):
-        base_url = cls._api.base_url()
+        base_url = API().base_url()
         return "%s/%s" % (base_url, cls._uri)
 
 
@@ -186,7 +187,7 @@ class Resource(object):
         if getattr(self, self._id_attr) is None and boomi_id is None:
             return self.__base_url()
 
-        base_url = self._api.base_url()
+        base_url = API().base_url()
         boomi_id = getattr(self, self._id_attr) if boomi_id is None else boomi_id
         return "%s/%s/%s" % (base_url, self._uri, boomi_id)
 

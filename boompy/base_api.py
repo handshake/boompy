@@ -15,22 +15,19 @@ BASE_URL = "https://api.boomi.com/api/rest/v1"
 PARTNER_BASE_URL = "https://api.boomi.com/partner/api/rest/v1"
 
 class API(object):
+    session = None
+    partner_account = None
     account_id = None
     username = None
     password = None
-    session = None
-    partner_account = None
+    instance = None
 
-    def __init__(self, account_id, username, password):
-        if username is None:
-            raise UnauthorizedError("Boomi username not provied")
+    def __new__(cls):
+        if cls.instance is None:
+            cls.instance = super(API, cls).__new__(cls)
+        return cls.instance
 
-        if password is None:
-            raise UnauthorizedError("Boomi username not provied")
-
-        if account_id is None:
-            raise UnauthorizedError("Boomi account id not provied")
-
+    def _set_auth(self, account_id, username, password):
         self.account_id = account_id
         self.username = username
         self.password = password
@@ -57,9 +54,18 @@ class API(object):
 
 
     def base_url(self, partner=False):
-        return "%s/%s" % (PARTNER_BASE_URL if (partner or self.partner_account)  else BASE_URL, self.account_id)
+        if self.account_id is None:
+            raise UnauthorizedError("Boomi account id not provied")
+
+        return "%s/%s" % (PARTNER_BASE_URL if (partner or self.partner_account) else BASE_URL, self.account_id)
 
     def _session_with_headers(self):
+        if self.username is None:
+            raise UnauthorizedError("Boomi username not provied")
+
+        if self.password is None:
+            raise UnauthorizedError("Boomi password not provied")
+
         session = requests.session()
         session.auth = (self.username, self.password)
         session.headers.update({
@@ -68,5 +74,3 @@ class API(object):
         })
 
         return session
-
-

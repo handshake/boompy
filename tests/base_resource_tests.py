@@ -30,7 +30,7 @@ def test_inherit_resource():
 @raises(APIMethodNotAllowedError)
 @mock.patch.object(API, "https_request")
 def test_https_request(request_mock):
-    boomi = API(1,2,3)
+    boomi = API()._set_auth("account_id", "username", "password")
 
     class MockResponse(object):
         def __init__(self, content=None):
