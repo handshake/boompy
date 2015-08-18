@@ -28,6 +28,11 @@ QUERY_OPERATOR_LOOKUP = {
     "between": "BETWEEN"
 }
 
+class ResourceMeta(type):
+    def __new__(cls, name, parents, dict_):
+        name = dict_.get('_name', name)
+        return super(ResourceMeta, cls).__new__(cls, name, parents, dict_)
+
 class Resource(object):
     """ A base boomi resource. """
 
@@ -59,6 +64,7 @@ class Resource(object):
         _supported.update(supported_methods)
 
         class SubResource(Resource):
+            __metaclass__ = ResourceMeta
             _uri = type_
             _name = type_
             _id_attr = id_attr

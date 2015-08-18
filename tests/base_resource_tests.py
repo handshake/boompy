@@ -13,6 +13,7 @@ def test_create_resource():
     newthing = TestType(thing1=1, thing2="testing", thing3="not a thing")
     assert newthing.thing1 == 1
     assert newthing.thing2 == "testing"
+    assert type(newthing) == TestType
     assert not hasattr(newthing, "thing3")
 
 def test_inherit_resource():
