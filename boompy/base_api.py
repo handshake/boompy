@@ -20,12 +20,12 @@ class API(object):
     account_id = None
     username = None
     password = None
-    instance = None
+    __instance = None
 
     def __new__(cls):
-        if cls.instance is None:
-            cls.instance = super(API, cls).__new__(cls)
-        return cls.instance
+        if cls.__instance is None:
+            cls.__instance = super(API, cls).__new__(cls)
+        return cls.__instance
 
     def _set_auth(self, account_id, username, password):
         self.account_id = account_id

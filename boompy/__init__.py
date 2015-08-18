@@ -14,7 +14,7 @@ def set_auth(account_id, username, password):
 
 # Override the account_id value to pull info for partner accounts
 @contextmanager
-def sub_account(self, acct_id):
+def sub_account(acct_id):
     api = API()
     old_boomi_id = api.partner_account
     api.partner_account = acct_id
@@ -40,7 +40,7 @@ class Account(Resource):
 
     def url(self, boomi_id=None):
         if getattr(self, self._id_attr) is None and boomi_id is None:
-            return "%s/%s" % (self._api.base_url(partner=True), self._uri)
+            return "%s/%s" % (API().base_url(partner=True), self._uri)
         return super(Account, self).url(boomi_id=boomi_id)
 
 class Role(Resource):
