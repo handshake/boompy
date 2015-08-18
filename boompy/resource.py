@@ -29,6 +29,7 @@ QUERY_OPERATOR_LOOKUP = {
     "between": "BETWEEN"
 }
 
+# A meta class that fakes the name of the class generated via the factory
 class ResourceMeta(type):
     def __new__(cls, name, parents, dict_):
         name = dict_.get('_name', name)
@@ -53,6 +54,7 @@ class Resource(object):
         for attr in self._attributes:
             setattr(self, attr, None)
 
+        # Go through the kwargs and if they are an attribute we expect, assigns the value to self.
         for key, value in kwargs.iteritems():
             if key in self._attributes:
                 setattr(self, key, value)
@@ -60,6 +62,7 @@ class Resource(object):
 
     @classmethod
     def create_resource(cls, type_, attributes, id_attr="id", **supported_methods):
+        """ Factory function which will return a class of type 'type_' """
 
         _supported = copy.copy(DEFAULT_SUPPORTED)
         _supported.update(supported_methods)
@@ -77,6 +80,7 @@ class Resource(object):
 
     @classmethod
     def __https_request(cls, url, method="get", data=None):
+        """ Validate that we can call this method, and then calls it on the API singleton """
         actual_method = method
 
         # Make sure we're checking capabilities againts real permissions, despite Boomi's silly rest
@@ -96,17 +100,21 @@ class Resource(object):
 
 
     def __update_attrs_from_response(self, res):
+        """ Updates the attributes on self from the response object.
+            We expect that all errors which will get raised will have already been raised. """
         res_json = json.loads(res.content)
         for attr in self._attributes:
             setattr(self, attr, res_json.get(attr))
 
 
     def serialize(self):
+        """ Serialize self for the payload getting sent to boomi. """
         return {k: getattr(self, k) for k in self._attributes if getattr(self, k) is not None}
 
 
     @classmethod
     def get(cls, boomi_id):
+        """ Returns a single instance of type cls if the ID passed in here is a valid entity. """
 
         resource = cls()
         res = cls.__https_request(resource.url(boomi_id=boomi_id), method="get")
@@ -117,6 +125,8 @@ class Resource(object):
 
     @classmethod
     def query(cls, join="and", **kwargs):
+        """ Returns a list of entities of type 'cls' matching the query kwargs passed. If left
+            empty, is the equivilent of all() """
         expressions = []
 
         for key, value in kwargs.iteritems():
@@ -161,6 +171,7 @@ class Resource(object):
 
 
     def save(self, **kwargs):
+        """ Updates or creates self on boomi. """
         url = self.url()
 
         if getattr(self, self._id_attr) is not None:
@@ -179,11 +190,14 @@ class Resource(object):
 
     @classmethod
     def __base_url(cls):
+        """ Returns the base url for this entity joined with the base on the api singleton. """
         base_url = API().base_url()
         return "%s/%s" % (base_url, cls._uri)
 
 
     def url(self, boomi_id=None):
+        """ Returns the corresponding url for this instance depending on whether we are being
+            created or are simply updating/getting."""
         if getattr(self, self._id_attr) is None and boomi_id is None:
             return self.__base_url()
 

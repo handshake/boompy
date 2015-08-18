@@ -14,7 +14,9 @@ acct.save()
 - Account Group Account
 - Account User Role
 - Environment
+- Event
 - Integration Pack
+- Integration Pack Instance
 - Integration Pack Environment Attachment
 - Role
 
