@@ -1,7 +1,7 @@
 from contextlib import contextmanager
 
 from .base_api import API
-from .errors import InterfaceError
+from .errors import InterfaceError, APIRequestError
 from .resource import Resource
 from . import actions
 
@@ -67,10 +67,33 @@ class Role(Resource):
             raise InterfaceError("A keyword arg")
         return super(Role, cls).query()
 
+
+class AccountUserRole(Resource):
+    _id_attr = "id"
+    _uri = "AccountUserRole"
+    _name = "AccountUserRole"
+    _attributes = ("id", "accountId", "userId", "roleId", "notifyUser")
+
+    supported = {
+        "get": False,
+        "put": False,
+        "post": True,
+        "query": True,
+        "delete": True,
+    }
+
+    # Override the base Resource.query because boomi returns a 500 error instead of a 404 for the
+    # AccountUserRole resource... wat
+    @classmethod
+    def query(cls, **kwargs):
+        try:
+            super(AccountUserRole, self).query(**kwargs)
+        except APIRequestError:
+            return []
+
 entities = (
         ("AccountGroup", ("id", "defaultGroup", "name", "accountId"), {"delete": False}),
         ("AccountGroupAccount", ("id", "accountId", "accountGroupId"), {"put": False}),
-        ("AccountUserRole", ("id", "accountId", "userId", "roleId", "notifyUser"), {"put": False}),
         ("Environment", ("id", "name", "classification"), {}),
         ("Event", ("eventId", "accountId", "atomId", "atomName", "eventLevel", "eventDate",
                     "status", "eventType", "executionId", "title", "startTime",
