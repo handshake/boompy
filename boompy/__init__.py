@@ -87,7 +87,7 @@ class AccountUserRole(Resource):
     @classmethod
     def query(cls, **kwargs):
         try:
-            super(AccountUserRole, self).query(**kwargs)
+            super(AccountUserRole, cls).query(**kwargs)
         except APIRequestError:
             return []
 
