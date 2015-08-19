@@ -1,6 +1,7 @@
 import functools
 import json
 
+import boompy
 from .base_api import API
 from .errors import UnauthorizedError
 
