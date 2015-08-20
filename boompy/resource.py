@@ -2,6 +2,8 @@ import copy
 import json
 import re
 
+from datetime import datetime
+
 from .errors import APIMethodNotAllowedError, BoomiError
 from .base_api import API
 
@@ -104,12 +106,22 @@ class Resource(object):
             We expect that all errors which will get raised will have already been raised. """
         res_json = json.loads(res.content)
         for attr in self._attributes:
-            setattr(self, attr, res_json.get(attr))
+            value = res_json.get(attr)
+            if ("Date" in attr or "Time" in attr) and value:
+                value = time.strptime(value, "%Y-%m-%dT%H:%M:%SZ")
+            setattr(self, attr, value)
+
+
+    def _serialize_value(self, value):
+        if isinstance(value, datetime):
+            return value.strftime("%Y-%m-%dT%H:%M:%SZ")
+        return value
 
 
     def serialize(self):
         """ Serialize self for the payload getting sent to boomi. """
-        return {k: getattr(self, k) for k in self._attributes if getattr(self, k) is not None}
+        return {k: self._serialize_value(getattr(self, k)) for k in self._attributes
+                if getattr(self, k) is not None}
 
 
     @classmethod
@@ -165,7 +177,10 @@ class Resource(object):
             entity = cls()
             response.append(entity)
             for attr in cls._attributes:
-                setattr(entity, attr, payload.get(attr))
+                value = payload.get(attr)
+                if ("Date" in attr or "Time" in attr) and value:
+                    value = datetime.strptime(value, "%Y-%m-%dT%H:%M:%SZ")
+                setattr(entity, attr, value)
 
         return response
 
