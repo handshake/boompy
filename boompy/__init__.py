@@ -96,7 +96,7 @@ entities = (
         ("AccountGroupAccount", ("id", "accountId", "accountGroupId"), {"put": False}),
         ("Environment", ("id", "name", "classification"), {}),
         ("Event", ("eventId", "accountId", "atomId", "atomName", "eventLevel", "eventDate",
-                    "status", "eventType", "executionId", "title", "startTime",
+                    "status", "eventType", "executionId", "title", "startTime", "endTime",
                     "errorDocumentCount", "inboundDocumentCount", "outboundDocumentCount",
                     "processName", "recordDate", "error", "environment", "classification",
                     "errorType", "erroredStepLabel", "erroredStepType"),
