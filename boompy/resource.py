@@ -1,6 +1,7 @@
 import copy
 import json
 import re
+import time
 
 from datetime import datetime
 
@@ -30,6 +31,60 @@ QUERY_OPERATOR_LOOKUP = {
     "not_null": "IS_NOT_NULL",
     "between": "BETWEEN"
 }
+
+class ResourceList(list):
+    """ Used to handle lazy loading and paging through results from boomi.
+        Idea cribbed from https://github.com/recurly/recurly-client-python/
+    """
+
+    def __iter__(self):
+        list_ = self
+        while list_:
+            for x in list.__iter__(list_):
+                yield x
+            list_ = list_.__next_page()
+
+    def __len__(self):
+        return self.result_count
+
+    def __actual_len(self):
+        return super(ResourceList, self).__len__()
+
+    def __next_page(self):
+        time.sleep(.2)
+        if not self.query_token or self.__actual_len() < 100:
+            raise StopIteration
+
+        res = self.resource._https_request("%s/queryMore" % self.resource._base_url(),
+                                           method="post", data=self.query_token)
+
+        return ResourceList.page_for_response(self.resource, res)
+
+    @classmethod
+    def __process_obj_results(cls, resource, result_objs):
+        response = []
+        for payload in result_objs:
+            entity = resource()
+            response.append(entity)
+            for attr in resource._attributes:
+                value = payload.get(attr)
+                if ("Date" in attr or "Time" in attr) and value:
+                    value = datetime.strptime(value, "%Y-%m-%dT%H:%M:%SZ")
+                setattr(entity, attr, value)
+
+        return response
+
+    @classmethod
+    def page_for_response(cls, resource, response):
+        query_result = json.loads(response.content)
+        result_objs = cls.__process_obj_results(resource, query_result.get("result", []))
+        list_ = cls(result_objs)
+        list_.resource = resource
+        list_.result_count = query_result.get("numberOfResults", len(result_objs))
+        list_.query_token = query_result.get("queryToken")
+
+        return list_
+
 
 # A meta class that fakes the name of the class generated via the factory
 class ResourceMeta(type):
@@ -81,7 +136,7 @@ class Resource(object):
 
 
     @classmethod
-    def __https_request(cls, url, method="get", data=None):
+    def _https_request(cls, url, method="get", data=None):
         """ Validate that we can call this method, and then calls it on the API singleton """
         actual_method = method
 
@@ -129,7 +184,7 @@ class Resource(object):
         """ Returns a single instance of type cls if the ID passed in here is a valid entity. """
 
         resource = cls()
-        res = cls.__https_request(resource.url(boomi_id=boomi_id), method="get")
+        res = cls._https_request(resource.url(boomi_id=boomi_id), method="get")
         resource.__update_attrs_from_response(res)
 
         return resource
@@ -171,38 +226,8 @@ class Resource(object):
             q = {}
 
         # Do the initial query to get the first set of results
-        res = cls.__https_request("%s/query" % cls.__base_url(), method="post", data=q)
-        query_result = json.loads(res.content)
-        result_objs = query_result.get("result", [])
-        result_count = query_result.get("numberOfResults", len(result_objs))
-        query_token = query_result.get("queryToken")
-        response = cls.__process_query_result(result_objs)
-
-        # If we need to do paging, lets continue to fetch the queryMore endpoint to fill up the
-        # results set with all of the results.
-        while len(response) < result_count:
-            res = cls.__https_request("%s/queryMore" % cls.__base_url(), method="post",
-                                      data=query_token)
-            query_result = json.loads(res.content)
-            result_objs = query_result.get("result", [])
-            query_token = query_result.get("queryToken")
-            response += cls.__process_query_result(result_objs)
-
-        return response
-
-    @classmethod
-    def __process_query_result(cls, result_objs):
-        response = []
-        for payload in result_objs:
-            entity = cls()
-            response.append(entity)
-            for attr in cls._attributes:
-                value = payload.get(attr)
-                if ("Date" in attr or "Time" in attr) and value:
-                    value = datetime.strptime(value, "%Y-%m-%dT%H:%M:%SZ")
-                setattr(entity, attr, value)
-
-        return response
+        res = cls._https_request("%s/query" % cls._base_url(), method="post", data=q)
+        return ResourceList.page_for_response(cls, res)
 
     def save(self, **kwargs):
         """ Updates or creates self on boomi. """
@@ -211,7 +236,7 @@ class Resource(object):
         if getattr(self, self._id_attr) is not None:
             url = "%s/update" % url
 
-        res = self.__https_request(self.url(), method="post", data=self.serialize())
+        res = self._https_request(self.url(), method="post", data=self.serialize())
         self.__update_attrs_from_response(res)
 
 
@@ -219,11 +244,11 @@ class Resource(object):
         if getattr(self, self._id_attr) is None:
             raise BoomiError("Cannot call delete() on object which has not been saved yet.")
 
-        self.__https_request(self.url(), method="delete", data=self.serialze())
+        self._https_request(self.url(), method="delete", data=self.serialze())
 
 
     @classmethod
-    def __base_url(cls):
+    def _base_url(cls):
         """ Returns the base url for this entity joined with the base on the api singleton. """
         base_url = API().base_url()
         return "%s/%s" % (base_url, cls._uri)
@@ -233,7 +258,7 @@ class Resource(object):
         """ Returns the corresponding url for this instance depending on whether we are being
             created or are simply updating/getting."""
         if getattr(self, self._id_attr) is None and boomi_id is None:
-            return self.__base_url()
+            return self._base_url()
 
         base_url = API().base_url()
         boomi_id = getattr(self, self._id_attr) if boomi_id is None else boomi_id
