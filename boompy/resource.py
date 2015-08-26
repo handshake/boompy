@@ -185,6 +185,7 @@ class Resource(object):
                                       data=query_token)
             query_result = json.loads(res.content)
             result_objs = query_result.get("result", [])
+            query_token = query_result.get("queryToken")
             response += cls.__process_query_result(result_objs)
 
         return response
