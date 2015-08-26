@@ -37,9 +37,12 @@ class API(object):
         if self.partner_account:
             url = "%s?overrideAccount=%s" % (url, self.partner_account)
 
+        if not isinstance(data, basestring):
+            data = json.dumps(data)
+
         fn = getattr(self.session, method)
         try:
-            res = fn(url, data=json.dumps(data))
+            res = fn(url, data=data)
         except Exception, e:
             raise BoomiError(e)
 

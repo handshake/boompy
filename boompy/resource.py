@@ -170,10 +170,29 @@ class Resource(object):
         else:
             q = {}
 
+        # Do the initial query to get the first set of results
         res = cls.__https_request("%s/query" % cls.__base_url(), method="post", data=q)
         query_result = json.loads(res.content)
+        result_objs = query_result.get("result", [])
+        result_count = query_result.get("numberOfResults", len(result_objs))
+        query_token = query_result.get("queryToken")
+        response = cls.__process_query_result(result_objs)
+
+        # If we need to do paging, lets continue to fetch the queryMore endpoint to fill up the
+        # results set with all of the results.
+        while len(response) < result_count:
+            res = cls.__https_request("%s/queryMore" % cls.__base_url(), method="post",
+                                      data=query_token)
+            query_result = json.loads(res.content)
+            result_objs = query_result.get("result", [])
+            response += cls.__process_query_result(result_objs)
+
+        return response
+
+    @classmethod
+    def __process_query_result(cls, result_objs):
         response = []
-        for payload in query_result.get("result", []):
+        for payload in result_objs:
             entity = cls()
             response.append(entity)
             for attr in cls._attributes:
@@ -183,7 +202,6 @@ class Resource(object):
                 setattr(entity, attr, value)
 
         return response
-
 
     def save(self, **kwargs):
         """ Updates or creates self on boomi. """
