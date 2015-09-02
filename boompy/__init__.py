@@ -94,7 +94,13 @@ class AccountUserRole(Resource):
 entities = (
         ("AccountGroup", ("id", "defaultGroup", "name", "accountId"), {"delete": False}),
         ("AccountGroupAccount", ("id", "accountId", "accountGroupId"), {"put": False}),
+        ("Atom", ("instanceId", "currentVersion", "dateInstalled", "hostName", "type", "status",
+                  "name", "id"), {}),
+        ("Deployment", ("id", "digest", "environmentId", "processId"),
+            {"put": False, "delete": False}),
         ("Environment", ("id", "name", "classification"), {}),
+        ("EnvironmentAtomAttachment", ("atomId", "environmentId", "id"),
+            {"get": False, "put": False}),
         ("Event", ("eventId", "accountId", "atomId", "atomName", "eventLevel", "eventDate",
                     "status", "eventType", "executionId", "title", "startTime", "endTime",
                     "errorDocumentCount", "inboundDocumentCount", "outboundDocumentCount",
@@ -105,8 +111,22 @@ entities = (
             {"put": False, "post": False, "delete": False}),
         ("IntegrationPackInstance", ("id", "integrationPackOverrideName", "integrationPackId"),
             {"put": False, "get": True, "query": True, "post": True, "delete": True}),
+        ("IntegrationPackAtomAttachment", ("id", "atomId", "integrationPackInstanceId"),
+            {"get": False, "put": False}),
         ("IntegrationPackEnvironmentAttachment",
-            ("id", "environmentId", "integrationPackInstanceId"), {"put": False, "get": False})
+            ("id", "environmentId", "integrationPackInstanceId"), {"put": False, "get": False}),
+        ("Process", ("id", "name", "integrationpackInstanceId", "integrationpackId"),
+            {"post": False, "put": False, "delete": False}),
+        ("ProcessAtomAttachment", ("atomId", "processId", "id"), {"get": False, "put": False}),
+        ("ProcessEnvironmentAttachment", ("environmentId", "processId", "id"),
+            {"get": False, "put": False}),
+        ("ProcessSchedules", ("id", "atomId", "processId", "years", "months", "daysOfMonth",
+                              "daysofWeek", "hours", "minutes", "maxRetry"),
+            {"post": False, "delete": False}),
+        ("ProcessScheduleStatus", ("enabled", "id", "atomId", "processId"),
+            {"post": False, "delete": False}),
+        ("Role", ("parentId", "name", "accountId", "id"),
+            {"post": False, "get": False, "put": False, "delete": False}),
 )
 
 # Loop through all the entities we are creating via the factory and factory them!

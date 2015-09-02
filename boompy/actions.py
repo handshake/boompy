@@ -14,3 +14,7 @@ def getAssignableRoles():
         results.append(boompy.Role(**role))
 
     return results
+
+def executeProcess(process_id, atom_id):
+    data = {"processId": process_id, "atomId": atom_id}
+    API().https_request("%s/executeProcess" % API().base_url(), "post", data)
