@@ -236,7 +236,7 @@ class Resource(object):
         if getattr(self, self._id_attr) is not None:
             url = "%s/update" % url
 
-        res = self._https_request(self.url(), method="post", data=self.serialize())
+        res = self._https_request(url, method="post", data=self.serialize())
         self.__update_attrs_from_response(res)
 
 

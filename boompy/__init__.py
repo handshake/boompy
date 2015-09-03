@@ -121,7 +121,7 @@ entities = (
         ("ProcessEnvironmentAttachment", ("environmentId", "processId", "id"),
             {"get": False, "put": False}),
         ("ProcessSchedules", ("id", "atomId", "Schedule", "processId"),
-            {"post": False, "delete": False}),
+            {"post": False, "delete": False, "put": True}),
         ("ProcessScheduleStatus", ("enabled", "id", "atomId", "processId"),
             {"post": False, "delete": False}),
         ("Role", ("parentId", "name", "accountId", "id"),
