@@ -66,11 +66,7 @@ class ResourceList(list):
         for payload in result_objs:
             entity = resource()
             response.append(entity)
-            for attr in resource._attributes:
-                value = payload.get(attr)
-                if ("Date" in attr or "Time" in attr) and value:
-                    value = datetime.strptime(value, "%Y-%m-%dT%H:%M:%SZ")
-                setattr(entity, attr, value)
+            entity._update_attrs_from_response(payload)
 
         return response
 
@@ -156,12 +152,21 @@ class Resource(object):
         return API().https_request(url, method, data)
 
 
-    def __update_attrs_from_response(self, res):
+    def _update_attrs_from_response(self, payload):
         """ Updates the attributes on self from the response object.
             We expect that all errors which will get raised will have already been raised. """
-        res_json = json.loads(res.content)
         for attr in self._attributes:
-            value = res_json.get(attr)
+            value = payload.get(attr)
+            processing = [value]
+            while processing:
+                current = processing.pop()
+                if isinstance(current, list):
+                    processing.extend(current)
+                elif isinstance(current, dict):
+                    if current.get("@type"):
+                        del current["@type"]
+                    processing.extend(current.values())
+
             if ("Date" in attr or "Time" in attr) and value:
                 value = time.strptime(value, "%Y-%m-%dT%H:%M:%SZ")
             setattr(self, attr, value)
@@ -185,7 +190,7 @@ class Resource(object):
 
         resource = cls()
         res = cls._https_request(resource.url(boomi_id=boomi_id), method="get")
-        resource.__update_attrs_from_response(res)
+        resource._update_attrs_from_response(json.loads(res.content))
 
         return resource
 
@@ -237,7 +242,7 @@ class Resource(object):
             url = "%s/update" % url
 
         res = self._https_request(url, method="post", data=self.serialize())
-        self.__update_attrs_from_response(res)
+        self._update_attrs_from_response(json.loads(res.content))
 
 
     def delete(self, **kwargs):

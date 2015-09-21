@@ -53,5 +53,19 @@ def test_https_request(request_mock):
 
     newthing.query()
 
-
+def test__update_attrs_from_response():
+    TestType = Resource.create_resource("TestType", ("thing1", "thing2"), id_attr="thing1")
+    newthing = TestType(thing1=1, thing2="testing")
+    new_1 = 2
+    new_2 = {"@type": "TestList",
+             "list": [{"@type": "TestObj", "id": 0}, {"@type": "TestObj", "id": 1}],
+             "id": 1}
+    newthing._update_attrs_from_response({"thing1": new_1, "thing2": new_2})
+    assert newthing.thing1 == new_1
+    assert newthing.thing2.get("@type") is None
+    assert newthing.thing2.get("id") == 1
+    assert len(newthing.thing2.get("list")) == 2
+    for num in (0, 1):
+        assert newthing.thing2.get("list")[num].get("@type") is None
+        assert newthing.thing2.get("list")[num].get("id") == num
 
