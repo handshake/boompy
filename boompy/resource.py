@@ -166,9 +166,8 @@ class Resource(object):
                     if current.get("@type"):
                         del current["@type"]
                     processing.extend(current.values())
-
             if ("Date" in attr or "Time" in attr) and value:
-                value = time.strptime(value, "%Y-%m-%dT%H:%M:%SZ")
+                value = datetime.strptime(value, "%Y-%m-%dT%H:%M:%SZ")
             setattr(self, attr, value)
 
 
