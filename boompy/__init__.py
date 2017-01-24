@@ -1,11 +1,11 @@
 from contextlib import contextmanager
 
 from .base_api import API
-from .errors import InterfaceError, APIRequestError
+from .errors import InterfaceError, APIRequestError, BoomiError
 from .resource import Resource
 from . import actions
 
-__version__ = "0.0.3"
+__version__ = "0.0.4"
 
 __all__ = ["Account", "Role"]
 
@@ -95,7 +95,7 @@ entities = (
         ("AccountGroup", ("id", "defaultGroup", "name", "accountId"), {"delete": False}),
         ("AccountGroupAccount", ("id", "accountId", "accountGroupId"), {"put": False}),
         ("Atom", ("instanceId", "currentVersion", "dateInstalled", "hostName", "type", "status",
-                  "name", "id"), {}),
+                  "name", "id", "cloudId"), {}),
         ("AtomExtensions", ("id", "extensionGroupId", "atomId"), {"post": False, "delete": False}),
         ("AtomMapExtension", ("name", "mapId", "processId", "id", "extensionGroupId", "atomId"),
             {"query": False, "post": False, "delete": False}),
