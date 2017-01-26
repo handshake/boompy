@@ -69,3 +69,12 @@ def test__update_attrs_from_response():
         assert newthing.thing2.get("list")[num].get("@type") is None
         assert newthing.thing2.get("list")[num].get("id") == num
 
+def test_atom_resource_has_attribute():
+    """
+    Method to test if newly added attributes exist in the API resource
+    """
+    atom_attributes = boompy.Atom._attributes
+    added_attributes = ("cloudId",)
+
+    for key in added_attributes:
+        assert key in atom_attributes, "%s is not an Atom attribute." % key

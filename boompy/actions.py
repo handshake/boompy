@@ -35,8 +35,8 @@ def provisionPartnerCustomerAccount(data={}):
             time.sleep(2)
             result = API().https_request("%s/%s" % (base_url, results.get("id")), "get", {})
             results = json.loads(result.content)
-        if results.get("status") == "ERROR":
-            raise BoomiError(result.get("error_message")) # is this how errors are formatted?
+        if results.get("status") != "COMPLETED":
+            raise BoomiError("failed setting up account")
         else:
             return results
     else:
