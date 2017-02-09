@@ -23,7 +23,16 @@ def executeProcess(process_id, atom_id):
     data = {"processId": process_id, "atomId": atom_id}
     API().https_request("%s/executeProcess" % API().base_url(), "post", data)
 
-def provisionPartnerCustomerAccount(data={}):
+def provisionPartnerCustomerAccount(data=None):
+    """
+    Method that will use the Boomi action to provision a new account for
+    the data passed in, if the required field(s) are missing from the dictionary
+    then a Boomi Error is raised
+    """
+
+    if data is None:
+        data = {}
+
     # It takes about a minute for this process to complete
     base_url = "%s/AccountProvision" % API().base_url(partner=True)
 
