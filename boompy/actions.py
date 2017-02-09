@@ -6,7 +6,7 @@ import boompy
 from .base_api import API
 from .errors import UnauthorizedError, BoomiError
 
-PROVISION_TEMPLATE = ["name", "street", "city", "stateCode", "zipCode",
+PROVISION_FIELDS = ["name", "street", "city", "stateCode", "zipCode",
                       "countryCode", "status", "product"]
 
 def getAssignableRoles():
@@ -36,7 +36,10 @@ def provisionPartnerCustomerAccount(data=None):
     # It takes about a minute for this process to complete
     base_url = "%s/AccountProvision" % API().base_url(partner=True)
 
-    if all(field in data for field in PROVISION_TEMPLATE):
+    data_fields = [key for key in data]
+    missing_fields = set(PROVISION_FIELDS) - set(data_fields)
+
+    if len(missing_fields) == 0:
         res = API().https_request("%s/execute" % base_url, "post", data)
         results = json.loads(res.content)
 
@@ -49,5 +52,5 @@ def provisionPartnerCustomerAccount(data=None):
         else:
             return results
     else:
-        raise BoomiError(("incomplete provison data provided, please ensure you include "
-                          "the following keys: ") + str(PROVISION_TEMPLATE))
+        raise BoomiError(("incomplete provison data provided, you are missing "
+                          "the following fields: ") + str(list(missing_fields)))
