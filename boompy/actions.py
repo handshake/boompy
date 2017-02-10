@@ -36,8 +36,7 @@ def provisionPartnerCustomerAccount(data=None):
     # It takes about a minute for this process to complete
     base_url = "%s/AccountProvision" % API().base_url(partner=True)
 
-    data_fields = [key for key in data]
-    missing_fields = set(PROVISION_FIELDS) - set(data_fields)
+    missing_fields = set(PROVISION_FIELDS) - set(data.keys())
 
     if len(missing_fields) == 0:
         res = API().https_request("%s/execute" % base_url, "post", data)
