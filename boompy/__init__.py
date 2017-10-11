@@ -123,6 +123,8 @@ entities = (
                     "processName", "recordDate", "error", "environment", "classification",
                     "errorType", "erroredStepLabel", "erroredStepType"),
             {"put": False, "get": False, "delete": False, "post": False, "id_attr": "eventId"}),
+        ("InstallerToken", ("id", "installType", "durationMinutes", "cloudId", "token", "expiration", "created", "accountId"),
+            {"query": False, "put": False, "get": False, "delete": False, "post": True}),
         ("IntegrationPack", ("id", "name", "Description", "installationType"),
             {"put": False, "post": False, "delete": False}),
         ("IntegrationPackInstance", ("id", "integrationPackOverrideName", "integrationPackId"),
