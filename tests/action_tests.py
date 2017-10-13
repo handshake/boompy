@@ -1,10 +1,19 @@
+import boompy
+import json
 import mock
 import requests
-import json
 
 from nose.tools import raises
 
-import boompy
+def make_mock_json_response(json_data):
+    """
+    Helper function that returns a mock http response for the provided json
+    """
+
+    res_patch = mock.Mock(spec=requests.Response)
+    res_patch.status_code = 200
+    res_patch.content = json.dumps(json_data)
+    return res_patch
 
 @raises(boompy.errors.BoomiError)
 def test_provision_with_no_data():
@@ -31,8 +40,8 @@ def test_provision_with_missing_data():
     boompy.set_auth("account_id", "username", "password")
     boompy.actions.provisionPartnerCustomerAccount(fake_data)
 
-@mock.patch.object(requests.Session, "get")
-@mock.patch.object(requests.Session, "post")
+@mock.patch.object(requests.Session, "get", autospec=True)
+@mock.patch.object(requests.Session, "post", autospec=True)
 def test_successful_provision_account(post_patch, get_patch):
     """
     Test to simulate a successful account provision
@@ -62,20 +71,14 @@ def test_successful_provision_account(post_patch, get_patch):
         "id": "0123456789ABCDEFGH"
     }
 
-    res_patch = mock.Mock(spec=requests.Response)
-    res_patch.status_code = 200
-    res_patch.content = json.dumps(fake_post_content)
-    post_patch.return_value = res_patch
-
-    res_patch = mock.Mock(spec=requests.Response)
-    res_patch.status_code = 200
-    res_patch.content = json.dumps(fake_get_content)
-    get_patch.return_value = res_patch
-
+    post_patch.return_value = make_mock_json_response(fake_post_content)
+    get_patch.return_value = make_mock_json_response(fake_get_content)
     boompy.set_auth("account_id", "username", "password")
-    boompy.actions.provisionPartnerCustomerAccount(fake_data)
+    result = boompy.actions.provisionPartnerCustomerAccount(fake_data)
+    assert result.get("accountId") == fake_get_content.get("accountId")
+    assert result.get("status") == fake_get_content.get("status")
 
-@mock.patch.object(requests.Session, "post")
+@mock.patch.object(requests.Session, "post", autospec=True)
 @raises(boompy.errors.BoomiError)
 def test_failed_provision_account(post_patch):
     """
@@ -99,10 +102,7 @@ def test_failed_provision_account(post_patch):
         "status": "NOT PENDING OR COMPLETED"
     }
 
-    res_patch = mock.Mock(spec=requests.Response)
-    res_patch.status_code = 200
-    res_patch.content = json.dumps(fake_content)
-    post_patch.return_value = res_patch
+    post_patch.return_value = make_mock_json_response(fake_content)
     boompy.set_auth("account_id", "username", "password")
     boompy.actions.provisionPartnerCustomerAccount(fake_data)
 
@@ -148,7 +148,7 @@ def test_update_with_mismatch():
     boompy.set_auth("account_id", "username", "password")
     boompy.actions.updatePartnerCustomerAccount(fake_account_id, fake_data)
 
-@mock.patch.object(requests.Session, "post")
+@mock.patch.object(requests.Session, "post", autospec=True)
 def test_successful_update_on_account(post_patch):
     """
     Test to simulate a successful account update
@@ -172,14 +172,11 @@ def test_successful_update_on_account(post_patch):
         "status": "COMPLETED"
     }
 
-    res_patch = mock.Mock(spec=requests.Response)
-    res_patch.status_code = 200
-    res_patch.content = json.dumps(fake_content)
-    post_patch.return_value = res_patch
+    post_patch.return_value = make_mock_json_response(fake_content)
     boompy.set_auth("account_id", "username", "password")
     boompy.actions.updatePartnerCustomerAccount(fake_account_id, fake_data)
 
-@mock.patch.object(requests.Session, "post")
+@mock.patch.object(requests.Session, "post", autospec=True)
 @raises(boompy.errors.BoomiError)
 def test_failed_update_on_account(post_patch):
     """
@@ -203,9 +200,6 @@ def test_failed_update_on_account(post_patch):
         "status": "NOT PENDING OR COMPLETED"
     }
 
-    res_patch = mock.Mock(spec=requests.Response)
-    res_patch.status_code = 200
-    res_patch.content = json.dumps(fake_content)
-    post_patch.return_value = res_patch
+    post_patch.return_value = make_mock_json_response(fake_content)
     boompy.set_auth("account_id", "username", "password")
     boompy.actions.updatePartnerCustomerAccount(fake_data)
