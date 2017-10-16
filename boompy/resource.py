@@ -248,7 +248,7 @@ class Resource(object):
         if getattr(self, self._id_attr) is None:
             raise BoomiError("Cannot call delete() on object which has not been saved yet.")
 
-        self._https_request(self.url(), method="delete", data=self.serialze())
+        self._https_request(self.url(), method="delete", data=self.serialize())
 
 
     @classmethod
@@ -267,4 +267,3 @@ class Resource(object):
         base_url = API().base_url()
         boomi_id = getattr(self, self._id_attr) if boomi_id is None else boomi_id
         return "%s/%s/%s" % (base_url, self._uri, boomi_id)
-

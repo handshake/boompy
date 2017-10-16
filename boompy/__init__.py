@@ -36,7 +36,7 @@ class Account(Resource):
         "get": True,
         "put": False,
         "post": True,
-        "delete": False,
+        "delete": True,
         "query": True,
     }
 
@@ -45,6 +45,14 @@ class Account(Resource):
         if getattr(self, self._id_attr) is None and boomi_id is None:
             return "%s/%s" % (API().base_url(partner=True), self._uri)
         return super(Account, self).url(boomi_id=boomi_id)
+
+    # Override the base Resource.delete because we need partner stuff when deleting an account
+    def delete(self, **kwargs):
+        if getattr(self, self._id_attr) is None:
+            raise BoomiError("Cannot call delete() on object which has not been saved yet.")
+
+        url = "%s/%s/%s" % (API().base_url(partner=True), self._uri, getattr(self, self._id_attr))
+        self._https_request(url, method="delete", data=self.serialize())
 
 class Role(Resource):
     _id_attr = "id"
@@ -123,6 +131,8 @@ entities = (
                     "processName", "recordDate", "error", "environment", "classification",
                     "errorType", "erroredStepLabel", "erroredStepType"),
             {"put": False, "get": False, "delete": False, "post": False, "id_attr": "eventId"}),
+        ("InstallerToken", ("id", "installType", "durationMinutes", "cloudId", "token", "expiration", "created", "accountId"),
+            {"query": False, "put": False, "get": False, "delete": False, "post": True}),
         ("IntegrationPack", ("id", "name", "Description", "installationType"),
             {"put": False, "post": False, "delete": False}),
         ("IntegrationPackInstance", ("id", "integrationPackOverrideName", "integrationPackId"),
