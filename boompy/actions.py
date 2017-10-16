@@ -56,3 +56,27 @@ def provisionPartnerCustomerAccount(data=None):
     else:
         raise BoomiError(("incomplete provison data provided, you are missing "
                           "the following fields: ") + str(list(missing_fields)))
+
+def updatePartnerCustomerAccount(account_id, data=None):
+    """
+    Method that will use the Boomi action to update an account for the data
+    passed in
+    """
+
+    if data is None:
+        data = {}
+
+    if data.get("id") is None:
+        raise BoomiError("missing the field id in dict")
+    elif data.get("id") != account_id:
+        raise BoomiError("account_id passed in and id in dict do not match")
+
+    base_url = "%s/AccountProvision/%s" % (api.base_url(partner=True), account_id)
+
+    res = api.https_request(base_url, "post", data)
+    results = json.loads(res.content)
+
+    if results.get("status") != "COMPLETED":
+        raise BoomiError("failed updating account, status=%s" % results.get("status"))
+    else:
+        return results

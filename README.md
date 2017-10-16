@@ -20,6 +20,7 @@ acct.save()
 - Environment Atom Attachment
 - Environment Extensions
 - Event
+- Installer Token
 - Integration Pack
 - Integration Pack Instance
 - Integration Pack Environment Attachment
@@ -28,3 +29,4 @@ acct.save()
 ## Supported API Actions
 - getAssignableRoles
 - provisionPartnerCustomerAccount
+- updatePartnerCustomerAccount
