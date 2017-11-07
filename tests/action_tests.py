@@ -113,9 +113,8 @@ def test_update_with_no_data():
     with no data
     """
 
-    fake_account_id = "FakeAccount-12345"
     boompy.set_auth("account_id", "username", "password")
-    boompy.actions.updatePartnerCustomerAccount(fake_account_id, {})
+    boompy.actions.updatePartnerCustomerAccount()
 
 @raises(boompy.errors.BoomiError)
 def test_update_with_missing_id():
@@ -124,29 +123,12 @@ def test_update_with_missing_id():
     with missing id field
     """
 
-    fake_account_id = "FakeAccount-12345"
     fake_data = {
         "street": "Fake Street"
     }
 
     boompy.set_auth("account_id", "username", "password")
-    boompy.actions.updatePartnerCustomerAccount(fake_account_id, fake_data)
-
-@raises(boompy.errors.BoomiError)
-def test_update_with_mismatch():
-    """
-    Test to see if a BoomiError is thrown when trying to update an account
-    when account_id and id field do not match
-    """
-
-    fake_account_id = "FakeAccount-12345"
-    fake_data = {
-        "id": "FakeAccount2-43215",
-        "street": "Fake Street"
-    }
-
-    boompy.set_auth("account_id", "username", "password")
-    boompy.actions.updatePartnerCustomerAccount(fake_account_id, fake_data)
+    boompy.actions.updatePartnerCustomerAccount(fake_data)
 
 @mock.patch.object(requests.Session, "post", autospec=True)
 def test_successful_update_on_account(post_patch):
@@ -154,9 +136,8 @@ def test_successful_update_on_account(post_patch):
     Test to simulate a successful account update
     """
 
-    fake_account_id = "FakeAccount-12345"
     fake_data = {
-        "id": fake_account_id,
+        "id": "FakeAccount-12345",
         "name": "HelloWorld",
         "street": "Fake Street",
         "city": "Fake City",
@@ -174,7 +155,7 @@ def test_successful_update_on_account(post_patch):
 
     post_patch.return_value = make_mock_json_response(fake_content)
     boompy.set_auth("account_id", "username", "password")
-    boompy.actions.updatePartnerCustomerAccount(fake_account_id, fake_data)
+    boompy.actions.updatePartnerCustomerAccount(fake_data)
 
 @mock.patch.object(requests.Session, "post", autospec=True)
 @raises(boompy.errors.BoomiError)
@@ -183,9 +164,8 @@ def test_failed_update_on_account(post_patch):
     Test to simulate a failed account update
     """
 
-    fake_account_id = "FakeAccount-12345"
     fake_data = {
-        "id": fake_account_id,
+        "id": "FakeAccount-12345",
         "name": "HelloWorld",
         "street": "Fake Street",
         "city": "Fake City",
